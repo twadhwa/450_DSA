@@ -43,6 +43,7 @@ int main() {
     st.push(6);
     st.push(7);
     st.display();
+    cout<<"Hello "; 
 
     return 0;
 }

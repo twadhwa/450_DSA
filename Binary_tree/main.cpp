@@ -88,6 +88,7 @@ public :
             inorder(t->left_child);
             cout<<t->data<<" ";
             inorder(t->right_child);
+            cout<<"hello"; 
 
         }
 

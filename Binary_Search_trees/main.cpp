@@ -9,6 +9,8 @@ public:
     Node* lchild;
     int data;
     Node* rchild;
+    int height ;
+    int bf ;
     Node() {};
     Node(int data);
 };
@@ -19,25 +21,137 @@ Node::Node(int data) {
     rchild = nullptr;
 }
 
-Node *root ;
+
 class Tree{
 private:
     Node * root ;
 public:
-    Tree();
-    void CreateTree();
-    void Preorder(Node* p);
-    void Preorder() { Preorder(root); }  // Passing Private Parameter in Constructor
-    void Inorder(Node* p);
-    void Inorder() { Inorder(root); }
-    void Postorder(Node* p);
-    void Postorder() { Postorder(root); }
-    void Levelorder(Node* p);
+
+    Tree() {
+        root = nullptr;
+    }
 
 
-    Node* generateFromTraversal(int inorder[], int preorder[], int inStart, int inEnd);
 
-    // Searching in  a  binary search tree
+
+    void CreateTree() {
+        Node* p;
+        Node* t;
+        int x;
+        queue<Node*> q;
+
+        root = new Node;
+        cout << "Enter root data: " << flush;
+        cin >> x;
+        root->data = x;
+        root->lchild = nullptr;
+        root->rchild = nullptr;
+        q.emplace(root);
+
+        while (! q.empty()){
+            p = q.front();
+            q.pop();
+
+            cout << "Enter left child data of " << p->data << ": " << flush;
+            cin >> x;
+            if (x != -1){
+                t = new Node;
+                t->data = x;
+                t->lchild = nullptr;
+                t->rchild = nullptr;
+                p->lchild = t;
+                q.emplace(t);
+            }
+
+            cout << "Enter right child data of " << p->data << ": " << flush;
+            cin >> x;
+            if (x != -1){
+                t = new Node;
+                t->data = x;
+                t->lchild = nullptr;
+                t->rchild = nullptr;
+                p->rchild = t;
+                q.emplace(t);
+            }
+        }
+    }
+
+    void Preorder(Node *p) {
+        if (p){
+            cout << p->data << ", " << flush;
+            Preorder(p->lchild);
+            Preorder(p->rchild);
+        }
+    }
+
+    void Inorder(Node *p) {
+        if (p){
+            Inorder(p->lchild);
+            cout << p->data << ", " << flush;
+            Inorder(p->rchild);
+
+        }
+
+    }
+
+    void Postorder(Node *p) {
+        if (p){
+            Postorder(p->lchild);
+            Postorder(p->rchild);
+            cout << p->data << ", " << flush;
+        }
+    }
+
+    void Levelorder(Node *p) {
+        queue<Node*> q;
+        cout << p->data << ", " << flush;
+        q.emplace(p);
+
+        while (! q.empty()){
+            p = q.front();
+            q.pop();
+
+            if (p->lchild){
+                cout << p->lchild->data << ", " << flush;
+                q.emplace(p->lchild);
+            }
+
+            if (p->rchild){
+                cout << p->rchild->data << ", " << flush;
+                q.emplace(p->rchild);
+            }
+        }
+    }
+
+
+    int searchInorder(int inArray[], int inStart, int inEnd, int data){
+        for (int i=inStart; i<=inEnd; i++){
+            if (inArray[i] == data){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    Node* generateFromTraversal(int *inorder, int *preorder, int inStart, int inEnd) {
+        static int preIndex = 0;
+
+        if (inStart > inEnd){
+            return nullptr;
+        }
+
+        Node* node = new Node(preorder[preIndex++]);
+
+        if (inStart == inEnd){
+            return node;
+        }
+
+        int splitIndex = searchInorder(inorder, inStart, inEnd, node->data);
+        node->lchild = generateFromTraversal(inorder, preorder, inStart, splitIndex-1);
+        node->rchild = generateFromTraversal(inorder, preorder, splitIndex+1, inEnd);
+
+        return node;
+    }
 
     Node *  search(Node * t , int x ){
         int a = 0 ;
@@ -117,7 +231,14 @@ public:
         }
         x = Height(p->lchild);
         y = Height(p->rchild);
-        return x > y ? x + 1 : y + 1;
+
+        if (x>y){
+            return x +1 ;
+        }
+        else {
+            return y +1 ;
+        }
+
     }
 
     Node* InPre(Node *p) {
@@ -133,60 +254,7 @@ public:
         }
         return p;
     }
-/*
-    Node * Delete_recursive(Node * p , int x ){
-        Node *q ;
 
-        // For cominng out of recursion
-        if (p==NULL ){
-            return NULL ;
-        }
-        if (p->lchild == NULL && p->rchild == NULL ){
-
-
-            free ( p );
-            return NULL ;
-        }
-
-
-
-
-        // Same part as searching in a tree
-        if (p->data > x ){
-            p->lchild = Delete_recursive(p->lchild ,x );
-        }
-        else if (p->data < x ){
-            p->rchild = Delete_recursive(p->rchild , x ) ;
-        }
-
-        // Comparing height of the right sub tree with the height of the left subtree
-        else {
-            // Checking the height of the subtrees of the node
-            // Will delete the node from the higher subtree
-
-            // Here we will not delete a node but we will change the values of the node
-            if (Height(p->lchild) > Height(p->rchild)){
-                // q will store the inorder predecesor
-
-                q = InPre(p->lchild);
-                p->data = q->data;
-                p->lchild = Delete_recursive(p->lchild, q->data );
-
-
-
-
-            }
-            // Similar for the right subtree but the we will use successor
-            else {
-                q = InSucc(p->lchild);
-                p->data = q->data;
-                p->rchild = Delete_recursive(p->rchild, q->data  );
-
-            }
-        }
-        return p  ;
-
-    }*/
 
     Node* Delete(Node *p, int key) {
         Node* q;
@@ -220,62 +288,23 @@ public:
         }
         return p;
     }
+
     /*
-    void  creating_bst_from_preorder(int *A  , int size ){
-        stack <Node * > st ;
-        Node * p , * t ;
-        t = new Node ;
-        t->data = A[0];
-        t->lchild = t->rchild = NULL ;
-        p = t ;
-        root_2 = t ;
-        int i = 1 ;
-        while (i<size ){
 
-            if (A[i] < p->data ){
-                t = new Node ;
-                t ->data = A[i];
-                t->lchild = t->lchild = NULL ;
-                p->lchild = t;
-
-                p = p->lchild;
-                i++ ;
-            }
-            if (A[i] > p->data){
-                if (A[i] > p->data && A[i]< (st.top())->data ) {
-                    t = new Node ;
-                    t ->data = A[i];
-                    t->lchild = t->lchild = NULL ;
-                    p->rchild = t ;
-                    st.push (p);
-                    p=t;
-                    i++ ;
-
-                }
-                else {
-                    p = st.top();
-                    st.pop();
-
-                }
-            }
-        }
-
-    }
-     */
-    
-    // To be checked once again 
-    void createFromPreorder(int *pre, int n) {
+    Node * createFromPreorder(int *pre, int n) {
 
         // Create root node
+
+        Node * root_2 ;
         int i = 0;
-        root = new Node;
-        root->data = pre[i++];
-        root->lchild = nullptr;
-        root->rchild = nullptr;
+        root_2= new Node;
+        root_2->data = pre[i++];
+        root_2->lchild = nullptr;
+        root_2->rchild = nullptr;
 
         // Iterative steps
         Node* t;
-        Node* p = root;
+        Node* p = root_2 ;
         stack<Node*> stk;
 
         while (i < n){
@@ -286,6 +315,7 @@ public:
                 t->lchild = nullptr;
                 t->rchild = nullptr;
                 p->lchild = t;
+
                 stk.push(p);
                 p = t;
             } else {
@@ -303,134 +333,201 @@ public:
                 }
             }
         }
+        return root_2 ;
     }
+    */
+    Node* constructBST(int preorder[], int start, int end)
+    {
+
+        if (start > end) {
+            return NULL;
+        }
+
+        struct Node* node = new Node(preorder[start]);
+
+
+        int i;
+        for (i = start; i <= end; i++)
+        {
+            if (preorder[i] > node->data) {
+                break;
+            }
+        }
+
+
+        node->lchild = constructBST(preorder, start + 1, i - 1);
+        node->rchild = constructBST(preorder, i, end);
+
+        return node;
+    }
+
+    int height (Node *p){
+        int h_left , h_right;
+        if (p && p->lchild){
+            h_left = p->lchild->height ;
+        }
+        else{
+            h_left = 0 ;
+
+        }
+
+
+        if (p && p->rchild){
+            h_right = p ->rchild->height;
+        }
+        else {
+            h_right = p->rchild->height ;
+        }
+
+        if (h_left > h_right){
+            return h_left + 1  ;
+        }
+        else {
+            return h_right + 1 ;
+        }
+    }
+
+    int BalanceFactor (Node * p){
+        int h_left , h_right;
+        if (p && p->lchild){
+            h_left = p->lchild->height ;
+        }
+        else{
+            h_left = 0 ;
+
+        }
+
+
+        if (p && p->rchild){
+            h_right = p ->rchild->height;
+        }
+        else {
+            h_right = p->rchild->height ;
+        }
+
+        return h_left - h_right ;
+    }
+
+    struct Node * LLRotation(struct Node *p)
+    {
+        int lbf,rbf;
+        struct Node *pl=p->lchild;
+        pl->bf=0;
+        p->lchild=pl->rchild;
+        pl->rchild=p;
+        lbf=height(p->lchild)+1;
+        rbf=height(p->rchild)+1;
+        p->bf=lbf-rbf;
+        if(p==root)root=pl;
+        return pl;
+    }
+    struct Node *LRRotation(struct Node *p)
+    {
+        int lbf,rbf;
+        struct Node *pl=p->lchild;
+        struct Node *plr=pl->rchild;
+        plr->bf=0;
+
+        p->lchild=plr->rchild;
+        pl->rchild=plr->lchild;
+        plr->lchild=pl;
+        plr->rchild=p;
+        lbf=height(p->lchild)+1;
+        rbf=height(p->rchild)+1;
+        p->bf=lbf-rbf;
+
+        lbf=height(pl->lchild)+1;
+        rbf=height(pl->rchild)+1;
+        pl->bf=lbf-rbf;
+        if(p==root)root=plr;
+        return plr;
+    }
+    struct Node *RRRotation(struct Node *p)
+    {
+        int lbf,rbf;
+        struct Node *pr=p->rchild;
+        pr->bf=0;
+        p->rchild=pr->lchild;
+        pr->lchild=p;
+        lbf=height(p->lchild)+1;
+        rbf=height(p->rchild)+1;
+        p->bf=lbf-rbf;
+        if(p==root)root=pr;
+        return pr;
+    }
+    struct Node *RLRotation(struct Node *p)
+    {
+        int lbf,rbf;
+        struct Node *pr=p->rchild;
+        struct Node *prl=pr->lchild;
+        prl->bf=0;
+
+        p->rchild=prl->lchild;
+        pr->lchild=prl->rchild;
+        prl->rchild=pr;
+        prl->lchild=p;
+        lbf=height(p->lchild)+1;
+        rbf=height(p->rchild)+1;
+        p->bf=lbf-rbf;
+
+        lbf=height(pr->lchild)+1;
+        rbf=height(pr->rchild)+1;
+        pr->bf=lbf-rbf;
+        if(p==root)root=prl;
+        return prl;
+    }
+
+
+
+
+
+    Node *  insertion_recursive_avl (Node *p , int x ){
+        Node *t ;
+        if (p==NULL){
+            t = new Node ;
+            t->lchild = t ->rchild = NULL;
+            t->height = 0 ;
+            t->data = x ;
+            return t ;
+
+        }
+        root = t ;
+
+        if (p->data > x ){
+            p->lchild = insertion_recursive(p->lchild , x );
+        }
+
+        else if (p->data < x ){
+            p->rchild = insertion_recursive(p->rchild ,x ) ;
+        }
+
+        // Till here we have just inserted in the binary search tree
+        // From here we will start rotations
+
+        // Declaring height of the tree
+        p->height = height(p) ;
+
+        // Checking for the balance factor of the nodes
+
+        if (BalanceFactor(p) == 2 && BalanceFactor (p->lchild) == 1) {
+            return LLRotation(p);
+        } else if (BalanceFactor(p) == 2 && BalanceFactor(p->lchild) == -1){
+            return LRRotation(p);
+        } else if (BalanceFactor(p) == -2 && BalanceFactor(p->rchild) == -1){
+            return RRRotation(p);
+        } else if (BalanceFactor(p) == -2 && BalanceFactor(p->rchild) == 1){
+            return RLRotation(p);
+        }
+
+        return root ;
+    }
+
+
+
 
 
 };
 
-Tree::Tree() {
-    root = nullptr;
-}
-
-
-
-
-void Tree::CreateTree() {
-    Node* p;
-    Node* t;
-    int x;
-    queue<Node*> q;
-
-    root = new Node;
-    cout << "Enter root data: " << flush;
-    cin >> x;
-    root->data = x;
-    root->lchild = nullptr;
-    root->rchild = nullptr;
-    q.emplace(root);
-
-    while (! q.empty()){
-        p = q.front();
-        q.pop();
-
-        cout << "Enter left child data of " << p->data << ": " << flush;
-        cin >> x;
-        if (x != -1){
-            t = new Node;
-            t->data = x;
-            t->lchild = nullptr;
-            t->rchild = nullptr;
-            p->lchild = t;
-            q.emplace(t);
-        }
-
-        cout << "Enter right child data of " << p->data << ": " << flush;
-        cin >> x;
-        if (x != -1){
-            t = new Node;
-            t->data = x;
-            t->lchild = nullptr;
-            t->rchild = nullptr;
-            p->rchild = t;
-            q.emplace(t);
-        }
-    }
-}
-
-void Tree::Preorder(Node *p) {
-    if (p){
-        cout << p->data << ", " << flush;
-        Preorder(p->lchild);
-        Preorder(p->rchild);
-    }
-}
-
-void Tree::Inorder(Node *p) {
-    if (p){
-        Inorder(p->lchild);
-        cout << p->data << ", " << flush;
-        Inorder(p->rchild);
-    }
-}
-
-void Tree::Postorder(Node *p) {
-    if (p){
-        Postorder(p->lchild);
-        Postorder(p->rchild);
-        cout << p->data << ", " << flush;
-    }
-}
-
-void Tree::Levelorder(Node *p) {
-    queue<Node*> q;
-    cout << p->data << ", " << flush;
-    q.emplace(p);
-
-    while (! q.empty()){
-        p = q.front();
-        q.pop();
-
-        if (p->lchild){
-            cout << p->lchild->data << ", " << flush;
-            q.emplace(p->lchild);
-        }
-
-        if (p->rchild){
-            cout << p->rchild->data << ", " << flush;
-            q.emplace(p->rchild);
-        }
-    }
-}
-
-
-int searchInorder(int inArray[], int inStart, int inEnd, int data){
-    for (int i=inStart; i<=inEnd; i++){
-        if (inArray[i] == data){
-            return i;
-        }
-    }
-    return -1;
-}
-
-Node* Tree::generateFromTraversal(int *inorder, int *preorder, int inStart, int inEnd) {
-    static int preIndex = 0;
-
-    if (inStart > inEnd){
-        return nullptr;
-    }
-
-    Node* node = new Node(preorder[preIndex++]);
-
-    if (inStart == inEnd){
-        return node;
-    }
-
-    int splitIndex = searchInorder(inorder, inStart, inEnd, node->data);
-    node->lchild = generateFromTraversal(inorder, preorder, inStart, splitIndex-1);
-    node->rchild = generateFromTraversal(inorder, preorder, splitIndex+1, inEnd);
-
-    return node;
-}
 
 
 
@@ -442,16 +539,47 @@ int main() {
     int inorder[] = {20 , 30 , 35 , 40 , 45 , 50 , 60 , 70 };
 
     int size = sizeof(inorder)/sizeof(inorder[0]);
+    Node * root ;
+
+
+
+
 
     Node* T = bt.generateFromTraversal(inorder, preorder, 0, size-1);
 
+    root = bt.constructBST(preorder , 0 , size-1);
+
+    Node * root_2 = NULL;
+    bt.insertion_recursive_avl(root_2 , 80 );
+    cout<< root_2->data ;
+
+    cout<<"The new preorder is "<<endl ;
 
 
-    bt.createFromPreorder(preorder , size );
-    cout<<"The preorder of the tree is "<< endl ;
-    bt.Inorder(root);
 
-    cout<<"hello world";
+
+
+
+
+
+
+
+
+
+
+    bt.Preorder(root_2 );
+    bt.Inorder(root_2);
+    cout<<endl;
+    bt.Postorder(root_2);
+
+    cout<< endl ;
+
+
+
+
+
+
+
 
 
 

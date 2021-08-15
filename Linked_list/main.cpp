@@ -133,7 +133,7 @@ int linked_list::Length()
         len++;
         p=p->next;
     }return len;
-}
+
 void linked_list::Insert(int index,int x)
 {
     Node *t,*p=first;
